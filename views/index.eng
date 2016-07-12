@@ -19,7 +19,7 @@
         <select id="effect">
           <option value="4">Sine</option>
           <option value="0">Bar</option>
-          <option value="1">Bar2</option>
+          <option value="1">Bar 2</option>
           <option value="2">Line</option>
           <option value="3">Circle</option>
         </select>
