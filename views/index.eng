@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Music Space</title>
+  <link rel="shortcut icon" href="favicon.ico" />
+  <link href='https://fonts.googleapis.com/css?family=EB+Garamond&subset=latin,vietnamese' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css" />
+  <link rel="stylesheet" type="text/css" href="assets/css/app.min.css">
+  <script src="assets/js/lib/jquery.min.js"></script>
+  <script src="assets/js/lib/socket.io-1.4.5.js"></script>
+  <script src="assets/js/audio.min.js" text="javascript"></script>
+</head>
+<body>
+  <div class="container">
+    <ul id="audio-controls" class="controls">
+      <li>
+        <select id="effect">
+          <option value="4">Sine</option>
+          <option value="0">Bar</option>
+          <option value="1">Bar2</option>
+          <option value="2">Line</option>
+          <option value="3">Circle</option>
+        </select>
+      </li>
+      <li><button id="playpause" type="button"><i class="fa fa-2x fa-pause" aria-hidden="true"></i></button></li>
+      <li><button id="prev" type="button"><i class="fa fa-2x fa-step-backward" aria-hidden="true"></i></button></li>
+      <li><button id="next" type="button"><i class="fa fa-2x fa-step-forward" aria-hidden="true"></i></button></li>
+      <li><button id="fs" type="button" onclick="handleFullscreen();"><i class="fa fa-2x fa-expand" aria-hidden="true"></i></button></li>
+      <li><button id="sound" type="button"><i class="fa fa-2x fa-volume-down" aria-hidden="true"></i></button></li>
+      <li><input type="range" id="rangeSound" value="50" max="100" min="0"></li>
+      <li><button id="list" type="button"><i class="fa fa-2x fa-list" aria-hidden="true"></i></button></li>
+      <li><button id="history" type="button"><i class="fa fa-2x fa-history" aria-hidden="true"></i></button></li>
+    </ul>
+    <div class="music">
+      <img class="rotate" src="assets/images/logo.jpg" width="92px" height="92px" alt="caption">
+      <div class="ms-info">
+        <p><strong id="song-title">No Name</strong></p>
+        <p id="singer">Unknow</p>
+      </div>
+      <div class="dim-duration">
+        <div id="time"></div>
+        <!--<div class="seek"></div>-->
+        <span class="tooltip"></span>
+        <div class="line-tooltip"></div>
+      </div>
+      <span id="seek-info">seek 55%</span>
+    </div>
+    <div class="search">
+      <input type="text" id="search" placeholder="find music...">
+      <i class="fa fa-2x fa-search" aria-hidden="true"></i>
+      <ul id="result">
+      </ul>
+    </div>
+    <div class="divCanvas">
+      <canvas id="visualizer"></canvas>
+    </div>
+  </div>
+  <div class="dim"></div>
+  <div class="close" onclick="javascript:$('.dim').hide(); $('.close').hide(); $('#list-cover').hide();"><i class="fa fa-3x fa-times" aria-hidden="true"></i></div>
+  <div class="warning">
+    <i class="fa fa-spinner fa-pulse fa-3x fa-fw"></i>
+    <span style="display: block">loading...</span>
+  </div>
+  <p class="letter"><q>Without music, life would be a mistake.</q><cite style="display: block; text-align: right; font-style: italic; color: #e74c3c;">Friedrich Nietzsche</cite></p>
+  <div id="list-cover" style="font-family: 'Open Sans','helvetica neue',helvetica,arial,sans-serif; position: fixed; top: 0; left: 0; width: 100%; height: 100%; text-align: center; margin-top: 6%; color: #fff; display: none; z-index: 6;">
+    <h1>list</h1>
+    <ul id="list-spread">
+    </ul>
+  </div>
+</body>
+<script src="assets/js/app.js">
+</script>
+</html>
