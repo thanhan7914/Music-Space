@@ -59,7 +59,7 @@
     <div class="search">
       <input type="text" id="search" placeholder="find music...">
       <i class="fa fa-2x fa-search" aria-hidden="true"></i>
-      <ul id="result">
+      <ul id="result" items="20" total="100" last="0">
       </ul>
     </div>
     <div class="divCanvas">

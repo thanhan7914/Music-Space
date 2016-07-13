@@ -371,6 +371,14 @@ div > p.singer {
 #list-spread li:hover {
   color: #f39c12;
 }
+
+#more {
+  font-size: 12px;
+  text-align: center;
+  padding-top: 10px;
+  cursor: pointer;
+  color: lawngreen;
+}
 /*trick https://css-tricks.com/snippets/css/css-hacks-targeting-firefox/*/
 @-moz-document url-prefix() {
     #rangeSound{

@@ -55,22 +55,27 @@ io.on('connection', function(socket) {
   time : Date.now()
   };
 
-  socket.on('find', function(query) {
+  socket.on('find', function(query, offset) {
     if(isLimit(id) || typeof query !== 'string' || query.length < 3)
     {
       socket.emit('tomanyrequet');
       return;
     }
 
-    util.find(query)
+    if(typeof offset !== 'number' || offset.toString() === 'NaN') offset = 0;
+
+    util.find(query, offset)
     .then(function(datas) {
       datas = datas.filter(function(obj) {
-        if(obj.href.startsWith('/bai-hat')) return true;
+        if(String(obj.href).startsWith('/bai-hat')) return true;
         return false;
       });
       let localDatas = util.findInLocal(audios, new RegExp(util.convert(query), 'i'));
       for(let i of localDatas) datas.unshift(i);
       socket.emit('found-out', datas);
+    })
+    .catch(function(err) {
+      console.log(err);
     });
   });
 

@@ -188,11 +188,16 @@ $(document).ready(function() {
   id.attach('sdelay', 400);
   id.attach('smark');
   id.attach('ssto');
+  id.attach('newfind', true);
+
   socket.on('found-out', function(datas) {
     document.querySelector('.search > i').className = 'fa fa-2x fa-search';
     datas = Array.prototype.slice.call(datas);
     let container = $('#result');
-    container.empty();
+    if(id.newfind) container.empty();
+    else container.find('#more').remove();
+    let detail = datas.shift();
+    container.attr({'items': detail.items, 'total': detail.total, 'last': detail.last});
     for(let i of datas)
     {
       let color = inPlayList(i) ? '#d35400' : '#fff';
@@ -218,6 +223,25 @@ $(document).ready(function() {
       datas = JSON.parse(datas);
       addPlayList(datas);
       return false;
+    });
+
+    if(detail.last < detail.total)
+      container.append(`
+        <li id="more">${detail.last + detail.items}/${detail.total} results<br><i class="fa fa-ellipsis-h" aria-hidden="true" style="font-size: 24px;"></i></li>
+        `);
+
+    $('#more').click(function() {
+      $('body' ).off('click', '#more', this);
+      $('#more').find('i').removeClass('fa-ellipsis-h').addClass('fa-refresh fa-spin fa-3x fa-fw');
+      id.newfind = false;
+      socket.emit('find', $('#search').val(), detail.last + detail.items);
+    });
+
+    $('#more').mouseenter(function() {
+      id.newfind = false;
+    });
+    $('#more').mouseout(function() {
+      id.newfind = true;
     });
   });
 
@@ -247,6 +271,7 @@ $(document).ready(function() {
     {
       if($('#search').val().length > 3)
         id.ssto = setTimeout(function() {
+          id.newfind = true;
           socket.emit('find', $('#search').val());
         }, id.sdelay);
       return;
@@ -254,11 +279,17 @@ $(document).ready(function() {
     id.smark = Date.now();
 
     if($(this).val() < 3) return;
+    id.newfind = true;
     socket.emit('find', $('#search').val());
   });
 
-  $('#search').blur(function() {
+  $('.divCanvas').click(function() {
     $('#result').slideUp('slow');
+  });
+
+  $('#search').blur(function() {
+    if(id.newfind)
+      $('#result').slideUp('slow');
   });
 
   $('#search').focus(function() {

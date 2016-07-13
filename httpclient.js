@@ -31,6 +31,17 @@ let proxyQuery = function(url) {
   });
 }
 
+let post = function(url, form) {
+  return new Promise(function(r, rj) {
+    request.post({url, form}, function (error, response, body) {
+      if (!error && response.statusCode == 200)
+        r(body);
+      else if(error)
+        rj(new Error(url + error.message));
+    });
+  });
+}
+
 let download = function(url, folder, filename) {
   url = String(url).trim().replace(/^\s*|\s*$/g, '');
 
@@ -54,3 +65,4 @@ let download = function(url, folder, filename) {
 exports.get = get;
 exports.download = download;
 exports.proxyQuery = proxyQuery;
+exports.post = post;

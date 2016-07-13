@@ -4,7 +4,7 @@ let fs = require('fs');
 let readline = require('readline');
 let path = require('path');
 
-let url = 'http://m.mp3.zing.vn/tim-kiem/bai-hat.html?q=';
+let queryurl = 'http://m.mp3.zing.vn/tim-kiem/bai-hat.html?q=';
 let zing = 'http://m.mp3.zing.vn';
 let api = 'http://api.mp3.zing.vn/api/mobile/song/getsonginfo?requestdata=';
 
@@ -37,21 +37,31 @@ let getLink = function(target) {
   });
 }
 
+let find = function(query, offset = 0) {
+  if(/^[#]/.test(query))
+    return findSong(query.substring(1), 'artist', offset);
+  else
+    return findSong(query, 'title', offset);
+}
 
-let find = function(query) {
+let findSong = function(query, t, offset = 0) {
   query = query.trim().replace(/\s/g, '+');
+  query = `${queryurl}${query}&search_type=bai-hat&t=${t}&act=more&offset=${offset}`;
 
-  return httpClient.get(`${url}${query}`)
+  return httpClient.get(query)
   .then(function(body) {
-    let $ = cheerio.load(body);
-    let result = $('#fnBodyContent');
-    let url = result.find('.content-items');
-    let title = result.find('h3');
-    let singer = result.find('h4');
+    let json = JSON.parse(body);
+    let html = json.html.replace(/\r\n\t|\r|\t|\n/g, '');
+    let $ = cheerio.load(html);
+    let url = $('a');
     let len = url.length;
     let data = [];
+    data.push({items: json.items, total: json.total, last: offset, href: '/bai-hat/skip-this-obj', title: 'none', singer: 'unknow'});
     for(let i = 0; i < len; i++)
-      data.push({ href : $(url[i]).attr('href'), title : $(title[i]).text(), singer : $(singer[i]).text()})
+    {
+      let obj = $(url[i]);
+      data.push({ href : obj.attr('href'), title : $(obj.find('h3')).text(), singer : $(obj.find('h4')).text()})
+    }
 
     return data;
   })
@@ -103,7 +113,7 @@ let findInLocal = (datas, filter, un = false) => {
   });
 }
 
-let change_alias = (alias) => {
+let changeAlias = (alias) => {
     var str = String(alias);
     str= str.toLowerCase();
     str= str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g,"a");
@@ -119,8 +129,8 @@ let change_alias = (alias) => {
     return str.replace(/-/g, ' ');
 }
 
-let convertReg = (alias) => {
-  var str = change_alias(alias);
+let convert = function(alias) {
+  var str = changeAlias(alias);
   str= str.replace(/a/g,"(a|à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ)");
   str= str.replace(/e/g,"(e|è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ)");
   str= str.replace(/i/g,"(i|ì|í|ị|ỉ|ĩ)");
@@ -137,7 +147,7 @@ exports.find = find;
 exports.getLink = getLink;
 exports.get = httpClient.get;
 exports.download = httpClient.download;
-exports.convert = convertReg;
+exports.convert = convert;
 exports.saveData = saveData;
 exports.loadData = loadData;
 exports.findInLocal = findInLocal;
