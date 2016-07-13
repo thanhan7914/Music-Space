@@ -58,7 +58,7 @@ io.on('connection', function(socket) {
   socket.on('find', function(query, offset) {
     if(isLimit(id) || typeof query !== 'string' || query.length < 3)
     {
-      socket.emit('tomanyrequet');
+      socket.emit('tomanyrequest');
       return;
     }
 
@@ -82,7 +82,7 @@ io.on('connection', function(socket) {
   socket.on('play', function(datas) {
     if(isLimit(id) || typeof datas !== 'object' || !datas.hasOwnProperty('href') || !datas.hasOwnProperty('title') || !datas.hasOwnProperty('singer') || datas.href.length < 10)
     {
-      socket.emit('tomanyrequet');
+      socket.emit('tomanyrequest');
       return;
     }
     let target = datas.href;

@@ -230,18 +230,11 @@ $(document).ready(function() {
         <li id="more">${detail.last + detail.items}/${detail.total} results<br><i class="fa fa-ellipsis-h" aria-hidden="true" style="font-size: 24px;"></i></li>
         `);
 
-    $('#more').click(function() {
-      $('body' ).off('click', '#more', this);
+    $('#result').scroll(function() {
+      if($('#more').offset().top > innerHeight) return;
       $('#more').find('i').removeClass('fa-ellipsis-h').addClass('fa-refresh fa-spin fa-3x fa-fw');
       id.newfind = false;
       socket.emit('find', $('#search').val(), detail.last + detail.items);
-    });
-
-    $('#more').mouseenter(function() {
-      id.newfind = false;
-    });
-    $('#more').mouseout(function() {
-      id.newfind = true;
     });
   });
 
@@ -251,8 +244,8 @@ $(document).ready(function() {
     load(datas);
   });
 
-  socket.on('tomanyrequet', function() {
-    console.log('tomanyrequet');
+  socket.on('tomanyrequest', function() {
+    console.log('tomanyrequest');
     $('.dim').fadeOut('slow');
     $('.warning').fadeOut('slow');
   });
@@ -283,13 +276,8 @@ $(document).ready(function() {
     socket.emit('find', $('#search').val());
   });
 
-  $('.divCanvas').click(function() {
-    $('#result').slideUp('slow');
-  });
-
   $('#search').blur(function() {
-    if(id.newfind)
-      $('#result').slideUp('slow');
+    $('#result').slideUp('slow');
   });
 
   $('#search').focus(function() {
@@ -406,8 +394,7 @@ $(document).ready(function() {
 
   /*link https://developer.mozilla.org/en-US/Apps/Fundamentals/Audio_and_video_delivery/cross_browser_video_player#Fullscreen*/
   window.setFullscreenData = function(state, container) {
-    if(typeof container === 'undefined')
-      container = document.querySelector('html');
+    if(typeof container === 'undefined') return;
     container.setAttribute('data-fullscreen', !!state);
   }
 
