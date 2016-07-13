@@ -9,6 +9,7 @@ let favicon = require('serve-favicon');
 let fs = require('fs');
 
 let audios = [];
+let lyrics = [];
 
 app.use('/assets',express.static( __dirname + '/public_html')); //nginx
 app.use(favicon(__dirname + '/favicon.ico'));
@@ -24,11 +25,17 @@ server.listen(port, function(){
   console.log(`application run on port ${port}`);
 });
 
-util.readFile('/audios.ms')
-.then(function(datas) {
-  datas = `[${datas}]`;
-  datas = JSON.parse(datas);
-  audios = Array.prototype.slice.call(datas);
+Promise.all([
+  util.readFile('/audios.ms')
+  .then(function(datas) {
+    audios = datas;
+  }),
+  util.readFile('/lyrics.ms')
+  .then(function(datas) {
+    lyrics = datas;
+  })
+])
+.then(function() {
   console.log('done read datas.');
 })
 .catch(function(err) {
@@ -98,10 +105,10 @@ io.on('connection', function(socket) {
     }
 
     let name = path.basename(target, '.html') + '.mp3';
-    let fileLocals = util.findInLocal(audios, name, true);
-    if(fileLocals.length > 0)
+    let localFiles = util.findInLocal(audios, name, true);
+    if(localFiles.length > 0)
     {
-      socket.emit('play', fileLocals[0]);
+      socket.emit('play', localFiles[0]);
       return;
     }
 
@@ -139,7 +146,37 @@ io.on('connection', function(socket) {
       return;
     }
 
-    //
+    let target = datas.href;
+    let name = path.basename(target, '.html') + '.mp3';
+    let localFiles = util.findInLocal(lyrics, name, true);
+    if(localFiles.length !== 0)
+    {
+      socket.emit('lyrics', localFiles[0].lyrics);
+      return;
+    }
 
+    return util.queryApi(target)
+    .then(function(obj) {
+      if(obj.hasOwnProperty('lyrics_file'))
+      {
+        name = path.basename(obj.lyrics_file);
+
+        return util.download(obj.lyrics_file, __dirname + '/public_html/lyrics', name)
+        .then(function() {
+          let datas = {href: target, lyrics: name};
+          util.appendFile('/lyrics.ms', datas)
+          .then(function() {
+            lyrics.push(datas);
+          });
+
+          socket.emit('lyrics', obj.lyrics_file);
+        })
+        .catch(function(err) {
+          console.log(err);
+        });
+      }
+
+      socket.emit('lyrics', 'no lyrics');
+    });
   });
 });

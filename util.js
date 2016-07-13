@@ -90,10 +90,14 @@ let queryApi = function(target) {
   });
 }
 
-let readFile = function(filename) {
+let readFile = function(filename, plaintext = false) {
   return new Promise(function(r, rj) {
     fs.readFile(__dirname + filename, (err, datas) => {
       if (err) rj(err);
+      if(plaintext) r(datas);
+      datas = `[${datas}]`;
+      datas = JSON.parse(datas);
+      datas = Array.prototype.slice.call(datas);
       r(datas);
     });
   });

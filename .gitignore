@@ -1,4 +1,6 @@
 node_modules/
-audios.txt
+audios.ms
+lyrics.ms
 public_html/audios/
+public_html/lyrics/
 test.js
