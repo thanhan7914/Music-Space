@@ -24,8 +24,10 @@ server.listen(port, function(){
   console.log(`application run on port ${port}`);
 });
 
-util.loadData(__dirname + '/audios.txt')
+util.readFile('/audios.ms')
 .then(function(datas) {
+  datas = `[${datas}]`;
+  datas = JSON.parse(datas);
   audios = Array.prototype.slice.call(datas);
   console.log('done read datas.');
 })
@@ -85,7 +87,9 @@ io.on('connection', function(socket) {
       socket.emit('tomanyrequest');
       return;
     }
+
     let target = datas.href;
+    if(target === '/bai-hat/skip-this') return;
 
     if(target.endsWith('.mp3'))
     {
@@ -108,9 +112,17 @@ io.on('connection', function(socket) {
       return util.download(link, __dirname + '/public_html/audios', name)
       .then(function() {
         datas.href = name;
-        util.saveData(audios, datas, function() {
-          audios.push(datas);
-        });
+        if(util.findInLocal(audios, datas.href, true).length === 0)
+        {
+          util.appendFile('/audios.ms', datas)
+          .then(function() {
+            audios.push(datas);
+          })
+          .catch(function(err) {
+            console.log(err);
+          });
+        }
+
         socket.emit('play', datas);
       });
     })
@@ -118,5 +130,16 @@ io.on('connection', function(socket) {
       socket.emit('msg', err.message);
       console.log(err);
     });
+  });
+
+  socket.on('lyrics', function(datas) {
+    if(isLimit(id) || typeof datas !== 'object' || !datas.hasOwnProperty('href') || !datas.hasOwnProperty('title') || !datas.hasOwnProperty('singer') || datas.href.length < 10)
+    {
+      socket.emit('tomanyrequest');
+      return;
+    }
+
+    //
+
   });
 });

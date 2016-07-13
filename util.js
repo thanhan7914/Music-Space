@@ -1,7 +1,6 @@
 let httpClient = require('./httpclient');
 let cheerio = require('cheerio');
 let fs = require('fs');
-let readline = require('readline');
 let path = require('path');
 
 let queryurl = 'http://m.mp3.zing.vn/tim-kiem/bai-hat.html?q=';
@@ -56,7 +55,7 @@ let findSong = function(query, t, offset = 0) {
     let url = $('a');
     let len = url.length;
     let data = [];
-    data.push({items: json.items, total: json.total, last: offset, href: '/bai-hat/skip-this-obj', title: 'none', singer: 'unknow'});
+    data.push({items: json.items, total: json.total, last: offset, href: '/bai-hat/skip-this', title: 'none', singer: 'unknow'});
     for(let i = 0; i < len; i++)
     {
       let obj = $(url[i]);
@@ -70,37 +69,43 @@ let findSong = function(query, t, offset = 0) {
   });
 }
 
-let saveData = function(datas, obj, callback) {
-  let un = findInLocal(datas, obj.href, true);
-  if(un.length > 0) return;
+let queryApi = function(target) {
+  let id = path.basename(target, '.html');
+  let url = `${api}{"id":"${id}"}`;
 
-  let href = obj.href;
-  let title = obj.title.replace(/\#/g, '-');
-  let singer = obj.singer.replace(/\#/g, '-');
-  fs.appendFileSync(__dirname + '/audios.txt', `${href}#${title}#${singer}\n`, {encoding : 'utf8'});
-  callback();
+  return httpClient.get(url)
+  .then(function(body) {
+    let obj = JSON.parse(body);
+    if(!obj.source.hasOwnProperty('128'))
+      return httpClient.proxyQuery(url)
+      .then(function(jbody) {
+        obj = JSON.parse(jbody);
+        return obj;
+      });
+
+    return obj;
+  })
+  .catch(function(err) {
+    throw err;
+  });
 }
 
-let loadData = (filename) => {
-  return new Promise((r, rj) => {
-    let lines = [];
-    const rl = readline.createInterface({
-      input: fs.createReadStream(filename)
+let readFile = function(filename) {
+  return new Promise(function(r, rj) {
+    fs.readFile(__dirname + filename, (err, datas) => {
+      if (err) rj(err);
+      r(datas);
     });
+  });
+}
 
-    rl.on('line', (line) => {
-      let obj = {};
-      let p = line.search('#');
-      obj.href = line.substring(0, p);
-      line = line.substring(p + 1);
-      p = line.search('#');
-      obj.title = line.substring(0, p);
-      obj.singer = line.substring(p + 1);
-      lines.push(obj);
-    });
+let appendFile = function(filename, datas) {
+  return new Promise(function(r, rj) {
+    let content = `,\r\n${JSON.stringify(datas)}`;
 
-    rl.on('close', () => {
-      r(lines);
+    fs.appendFile(__dirname + filename, content, 'utf8', function(err) {
+      if(err) rj(err);
+      r();
     });
   });
 }
@@ -113,7 +118,7 @@ let findInLocal = (datas, filter, un = false) => {
   });
 }
 
-let changeAlias = (alias) => {
+let changeAlias = function(alias) {
     var str = String(alias);
     str= str.toLowerCase();
     str= str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g,"a");
@@ -148,6 +153,6 @@ exports.getLink = getLink;
 exports.get = httpClient.get;
 exports.download = httpClient.download;
 exports.convert = convert;
-exports.saveData = saveData;
-exports.loadData = loadData;
 exports.findInLocal = findInLocal;
+exports.appendFile = appendFile;
+exports.readFile = readFile;
