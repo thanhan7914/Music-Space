@@ -165,3 +165,4 @@ exports.convert = convert;
 exports.findInLocal = findInLocal;
 exports.appendFile = appendFile;
 exports.readFile = readFile;
+exports.queryApi = queryApi;
