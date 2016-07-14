@@ -117,6 +117,8 @@ io.on('connection', function(socket) {
 
       return util.download(link, __dirname + '/public_html/audios', name)
       .then(function() {
+        datas.href = name;
+
         util.appendFile('/audios.ms', datas)
         .then(function() {
           audios.push(datas);
