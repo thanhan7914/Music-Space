@@ -75,12 +75,11 @@ io.on('connection', function(socket) {
 
     util.find(query, offset)
     .then(function(datas) {
-      datas = datas.filter(function(obj) {
-        if(String(obj.href).startsWith('/bai-hat')) return true;
-        return false;
-      });
+      let detail = datas.shift();
       let localDatas = util.findInLocal(audios, new RegExp(util.convert(query), 'i'));
       for(let i of localDatas) datas.unshift(i);
+      detail.items = datas.length;
+      datas.unshift(detail);
       socket.emit('found-out', datas);
     })
     .catch(function(err) {
@@ -118,17 +117,13 @@ io.on('connection', function(socket) {
 
       return util.download(link, __dirname + '/public_html/audios', name)
       .then(function() {
-        datas.href = name;
-        if(util.findInLocal(audios, datas.href, true).length === 0)
-        {
-          util.appendFile('/audios.ms', datas)
-          .then(function() {
-            audios.push(datas);
-          })
-          .catch(function(err) {
-            console.log(err);
-          });
-        }
+        util.appendFile('/audios.ms', datas)
+        .then(function() {
+          audios.push(datas);
+        })
+        .catch(function(err) {
+          console.log(err);
+        });
 
         socket.emit('play', datas);
       });
@@ -157,7 +152,7 @@ io.on('connection', function(socket) {
 
     return util.queryApi(target)
     .then(function(obj) {
-      if(obj.hasOwnProperty('lyrics_file'))
+      if(typeof obj === 'object' && obj.hasOwnProperty('lyrics_file'))
       {
         name = path.basename(obj.lyrics_file);
 

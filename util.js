@@ -7,6 +7,11 @@ let queryurl = 'http://m.mp3.zing.vn/tim-kiem/bai-hat.html?q=';
 let zing = 'http://m.mp3.zing.vn';
 let api = 'http://api.mp3.zing.vn/api/mobile/song/getsonginfo?requestdata=';
 
+if(typeof String.prototype.addslashes === 'undefined')
+  String.prototype.addslashes = function() {
+    return this.replace(/\'/g,'\\\'').replace(/\"/g,'\\\"');
+  }
+
 let getLink = function(target) {
   let id = path.basename(target, '.html');
   let url = `${zing}${target}`;

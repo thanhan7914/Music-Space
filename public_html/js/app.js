@@ -201,29 +201,27 @@ $(document).ready(function() {
     for(let i of datas)
     {
       let color = inPlayList(i) ? '#d35400' : '#fff';
-      container.append(`
-        <li>
-          <i class="fa fa-star mark" aria-hidden="true" style="color: ${color};position: relative;left: 0;font-size: 19px;z-index: 10; display: inline;" title="add/remove to playlist" datas="{'href' : '${i.href}', 'title' : '${i.title.addslashes()}', 'singer' : '${i.singer.addslashes()}'}"></i>
-          <div class="result-content" style="display: inline;" onclick="playMusic('${i.href}', '${i.title.addslashes()}', '${i.singer.addslashes()}');">
-            <p class="title">${i.title.substring(0, 20) + (i.title.length > 20 ? '...' : '')}</p>
-            <p class="singer">${i.singer}</p>
-          </div>
-        </li>
+      let star = $(`<i class="fa fa-star mark" aria-hidden="true" style="color: ${color};position: relative;left: 0;font-size: 19px;z-index: 10; display: inline;" title="add/remove to playlist" datas="{'href' : '${i.href}', 'title' : '${i.title.addslashes()}', 'singer' : '${i.singer.addslashes()}'}"></i>`);
+      let li = $('<li></li>').html(`
+        <div class="result-content" style="display: inline;" onclick="playMusic('${i.href}', '${i.title.addslashes()}', '${i.singer.addslashes()}');">
+          <p class="title">${i.title.substring(0, 20) + (i.title.length > 20 ? '...' : '')}</p>
+          <p class="singer">${i.singer}</p>
+        </div>
         `);
+        li.prepend(star);
+        container.append(li);
+        star.click(function(){
+          let color = $(this).css('color');
+          if(color === 'rgb(211, 84, 0)') color = '#fff';
+          else color = '#d35400';
+
+          $(this).css('color', color);
+          let datas = String($(this).attr('datas'));
+          datas = datas.replace(/\'/g, '\"');
+          datas = JSON.parse(datas);
+          addPlayList(datas);
+        })
     }
-
-    $('#result > li >i').click(function() {
-      let color = $(this).css('color');
-      if(color === 'rgb(211, 84, 0)') color = '#fff';
-      else color = '#d35400';
-
-      $(this).css('color', color);
-      let datas = String($(this).attr('datas'));
-      datas = datas.replace(/\'/g, '\"');
-      datas = JSON.parse(datas);
-      addPlayList(datas);
-      return false;
-    });
 
     if(detail.last < detail.total)
       container.append(`
@@ -231,8 +229,10 @@ $(document).ready(function() {
         `);
 
     $('#result').scroll(function() {
-      if($('#more').offset().top > innerHeight) return;
-      $('#more').find('i').removeClass('fa-ellipsis-h').addClass('fa-refresh fa-spin fa-3x fa-fw');
+      let more = $('#more');
+      if(more === null) return;
+      if(more.offset().top > innerHeight) return;
+      more.find('i').removeClass('fa-ellipsis-h').addClass('fa-refresh fa-spin fa-3x fa-fw');
       id.newfind = false;
       socket.emit('find', $('#search').val(), detail.last + detail.items);
     });
@@ -394,7 +394,7 @@ $(document).ready(function() {
 
   /*link https://developer.mozilla.org/en-US/Apps/Fundamentals/Audio_and_video_delivery/cross_browser_video_player#Fullscreen*/
   window.setFullscreenData = function(state, container) {
-    if(typeof container === 'undefined') return;
+    if(!container) return;
     container.setAttribute('data-fullscreen', !!state);
   }
 
