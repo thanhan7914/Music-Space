@@ -159,15 +159,17 @@ canvas {
   z-index: 1;
 }
 
-.seek {
+.audio-loaded {
   position: fixed;
   height: 92px;
-  background: #e67e22;
-  opacity: 0.5;
-  -webkit-box-shadow: 0px 3px 5px #e67e22;
-  -moz-box-shadow: 0px 3px 5px #e67e22;
-  box-shadow: 0px 3px 5px #e67e22;
+  max-width: 188px;
+  background: rgb(42, 46, 51);
+  opacity: 0.1;
+  -webkit-box-shadow: 0px 3px 5px rgb(42, 46, 51);
+  -moz-box-shadow: 0px 3px 5px rgb(42, 46, 51);
+  box-shadow: 0px 3px 5px rgb(42, 46, 51);
   z-index: 2;
+  display: block;
 }
 
 .search {

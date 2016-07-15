@@ -50,16 +50,16 @@
       </div>
       <div class="dim-duration">
         <div id="time"></div>
-        <!--<div class="seek"></div>-->
+        <div class="audio-loaded"></div>
         <span class="tooltip"></span>
         <div class="line-tooltip"></div>
       </div>
       <span id="seek-info">seek 55%</span>
     </div>
     <div class="search">
-      <input type="text" id="search" placeholder="find music...">
+      <input type="text" id="search" placeholder="find music..." keyword="">
       <i class="fa fa-2x fa-search" aria-hidden="true"></i>
-      <ul id="result" items="20" total="100" last="0">
+      <ul id="result" items="20" total="100" last="0" keyword="">
       </ul>
     </div>
     <div class="divCanvas">

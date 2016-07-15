@@ -75,11 +75,23 @@ io.on('connection', function(socket) {
 
     util.find(query, offset)
     .then(function(datas) {
-      let detail = datas.shift();
-      let localDatas = util.findInLocal(audios, new RegExp(util.convert(query), 'i'));
-      for(let i of localDatas) datas.unshift(i);
-      detail.items = datas.length;
-      datas.unshift(detail);
+      if(offset === 0)
+      {
+        let detail = datas.shift();
+        let localDatas;
+        if(/^[#]/.test(query))
+        {
+          let pattern = new RegExp(util.convert(query.substring(1)), 'i');
+          localDatas = audios.filter(function(obj) {
+            if(obj.singer.match(pattern)) return true;
+            return false;
+          });
+        }
+        else localDatas = util.findInLocal(audios, new RegExp(util.convert(query), 'i'));
+        for(let i of localDatas) datas.unshift(i);
+        detail.items = datas.length;
+        datas.unshift(detail);
+      }
       socket.emit('found-out', datas);
     })
     .catch(function(err) {
@@ -113,7 +125,7 @@ io.on('connection', function(socket) {
 
     util.getLink(target)
     .then(function(link) {
-      if(typeof link === 'undefined' || link.length === 0) throw err;
+      if(typeof link === 'undefined' || link.length === 0) throw 'nullpointererror';
 
       return util.download(link, __dirname + '/public_html/audios', name)
       .then(function() {

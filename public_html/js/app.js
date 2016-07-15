@@ -49,6 +49,19 @@ function load(datas) {
     });
   };
   update();
+  window.audioProgress = function(bf, time, duration) {
+    let range = 0;
+    while(!(bf.start(range) <= time && time <= bf.end(range))) {
+        range += 1;
+    }
+
+    let loadStartPercentage = bf.start(range) / duration;
+    let loadEndPercentage = bf.end(range) / duration;
+    let loadPercentage = loadEndPercentage - loadStartPercentage;
+    let w = loadPercentage * 188;
+    $('.audio-loaded').css('width', w + 'px');
+  };
+
   document.querySelector('#song-title').innerHTML = datas.title.length > 15 ? datas.title.substring(0, 12) + '...' : datas.title;
   document.querySelector('#singer').innerHTML = datas.singer.length > 15 ? datas.singer.substring(0,14) + '...' : datas.singer;
   document.querySelector('#playpause>i').className = 'fa fa-2x fa-pause';
@@ -82,7 +95,7 @@ if(typeof String.prototype.addslashes === 'undefined')
 load(list[id.pos]);
 app.setVol(0.5);
 
-onEnded = function() {
+audioEnded = function() {
   id.pos++;
   if(id.pos >= list.length) id.pos = 0;
   load(list[id.pos]);
@@ -92,6 +105,8 @@ $(document).ready(function() {
   //resize
   if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 400)
     $('head').append('<link rel="stylesheet" type="text/css" href="assets/css/app.mobi.css">');
+
+  $('.audio-loaded').css({'top' : $('.dim-duration').offset().top + 'px', 'left' : $('.dim-duration').offset().left + 'px', 'width': '0px'});
 
   id.attach('soundClass', 'fa fa-2x fa-volume-down');
   id.attach('typeVisualizer', 4);
@@ -139,12 +154,10 @@ $(document).ready(function() {
   $('.dim-duration').mousemove(function(e) {
     let tooltip = $(this).find('span').text(app.calcTime(e.offsetX / $(this).width()));
     let line = $('.dim-duration').find('.line-tooltip');
-  //  let seekdiv = $('.dim-duration').find('.seek');
     let x = e.clientX - 26,
        y = e.clientY - 15;
     tooltip.css({'top' : y + 'px', 'left' : x + 'px', 'display': 'block'});
     line.css({'top' : $(this).offset().top + 'px', 'left' : (x + 26) + 'px', 'display': 'block'});
-//    seekdiv.css({'top' : $(this).offset().top + 'px', 'left' : $(this).offset().left + 'px', 'width' : e.offsetX > $(this).width() ? 0 : e.offsetX + 'px', 'display' : 'block'});
     if(Date.now() - id.tmark < id.mdelay) return;
     id.tmark = Date.now();
     let w = $(this).width(),
@@ -165,7 +178,6 @@ $(document).ready(function() {
     $('#seek-info').hide();
     $(this).find('span').hide();
     $('.dim-duration').find('.line-tooltip').hide();
-  //  $('.dim-duration').find('.seek').hide();
   });
 
   $('#seek-info').hide();
@@ -197,7 +209,7 @@ $(document).ready(function() {
     if(id.newfind) container.empty();
     else container.find('#more').remove();
     let detail = datas.shift();
-    container.attr({'items': detail.items, 'total': detail.total, 'last': detail.last});
+    container.attr({'items': detail.items, 'total': detail.total, 'last': detail.last, 'keyword': $('#search').attr('keyword')});
     for(let i of datas)
     {
       let color = inPlayList(i) ? '#d35400' : '#fff';
@@ -230,11 +242,11 @@ $(document).ready(function() {
 
     $('#result').scroll(function() {
       let more = $('#more');
-      if(more === null) return;
+      if(!more || typeof more.offset === 'undefined') return;
       if(more.offset().top > innerHeight) return;
       more.find('i').removeClass('fa-ellipsis-h').addClass('fa-refresh fa-spin fa-3x fa-fw');
       id.newfind = false;
-      socket.emit('find', $('#search').val(), detail.last + detail.items);
+      socket.emit('find', $('#search').attr('keyword'), detail.last + detail.items);
     });
   });
 
@@ -257,13 +269,18 @@ $(document).ready(function() {
   });
 
   $('#search').keyup(function() {
+    if($('#search').val().trim() === $('#result').attr('keyword').trim()) {
+      console.log('same');
+      return;
+    }
     if(typeof id.ssto !== 'undefined')
-      clearTimeout(id.sto);
+      clearTimeout(id.ssto);
     document.querySelector('.search > i').className = 'fa fa-refresh fa-spin fa-2x fa-fw';
     if(Date.now() - id.smark < id.sdelay)
     {
       if($('#search').val().length > 3)
         id.ssto = setTimeout(function() {
+          $('#search').attr('keyword', $('#search').val());
           id.newfind = true;
           socket.emit('find', $('#search').val());
         }, id.sdelay);
@@ -273,6 +290,7 @@ $(document).ready(function() {
 
     if($(this).val() < 3) return;
     id.newfind = true;
+    $('#search').attr('keyword', $('#search').val());
     socket.emit('find', $('#search').val());
   });
 
@@ -394,8 +412,8 @@ $(document).ready(function() {
 
   /*link https://developer.mozilla.org/en-US/Apps/Fundamentals/Audio_and_video_delivery/cross_browser_video_player#Fullscreen*/
   window.setFullscreenData = function(state, container) {
-    if(!container) return;
-    container.setAttribute('data-fullscreen', !!state);
+    if(container && typeof container.setAttribute === 'function')
+      container.setAttribute('data-fullscreen', !!state);
   }
 
   window.handleFullscreen =function() {

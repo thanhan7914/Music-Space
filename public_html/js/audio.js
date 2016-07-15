@@ -45,7 +45,8 @@
     class App {
       constructor(file, play = true) {
         audioSource = new Audio();
-        audioSource.src = file;
+        if(file !== null)
+          audioSource.src = file;
         let source = audioCtx.createMediaElementSource(audioSource);
         gainNode = audioCtx.createGain();
         analyser = audioCtx.createAnalyser();
@@ -58,7 +59,26 @@
              audioSource.play();
           });
         audioSource.onended = function() {
-          w.onEnded.call(w);
+          if(w.hasOwnProperty('audioEnded'))
+            w.audioEnded.call(w);
+        };
+        audioSource.onprogress = function() {
+          if(w.hasOwnProperty('audioProgress'))
+          {
+            let buffer = audioSource.buffered;
+            let currentTime = audioSource.currentTime;
+            let duration = audioSource.duration;
+            if(buffer && currentTime && duration)
+              w.audioProgress.call(w, buffer, currentTime, duration);
+          }
+        };
+        audioSource.oncanplay = function() {
+          if(w.hasOwnProperty('audioCanPlay'))
+            w.audioCanPlay.call(w);
+        };
+        audioSource.oncanplaythrough = function() {
+          if(w.hasOwnProperty('audioCanPlayThrough'))
+            w.audioCanPlayThrough.call(w);
         };
       }
 
