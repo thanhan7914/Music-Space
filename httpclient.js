@@ -6,7 +6,10 @@ let get = function(url) {
   url = String(url).trim().replace(/^\s*|\s*$/g, '');
 
   return new Promise(function(r, rj) {
-    request.get(url, function (error, response, body) {
+    request({ method: 'GET',
+    uri: url,
+    gzip: true
+    }, function (error, response, body) {
       if (!error && response.statusCode == 200)
         r(body);
       else if(error)

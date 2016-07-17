@@ -59,7 +59,7 @@ function load(datas) {
     let loadEndPercentage = bf.end(range) / duration;
     let loadPercentage = loadEndPercentage - loadStartPercentage;
     let w = loadPercentage * 188;
-    $('.audio-loaded').css('width', w + 'px');
+    $('.audio-loaded').css({'top' : $('.dim-duration').offset().top + 'px', 'left' : $('.dim-duration').offset().left + 'px', 'width': w + 'px'});
   };
 
   document.querySelector('#song-title').innerHTML = datas.title.length > 15 ? datas.title.substring(0, 12) + '...' : datas.title;
@@ -268,11 +268,7 @@ $(document).ready(function() {
     $('.warning').fadeOut('slow');
   });
 
-  $('#search').keyup(function() {
-    if($('#search').val().trim() === $('#result').attr('keyword').trim()) {
-      console.log('same');
-      return;
-    }
+  $('#search').keyup(function(e) {
     if(typeof id.ssto !== 'undefined')
       clearTimeout(id.ssto);
     document.querySelector('.search > i').className = 'fa fa-refresh fa-spin fa-2x fa-fw';
@@ -378,6 +374,10 @@ $(document).ready(function() {
       addPlayList(datas);
       return false;
     });
+  });
+
+  $(window).resize(function() {
+    $('.audio-loaded').css({'top' : $('.dim-duration').offset().top + 'px', 'left' : $('.dim-duration').offset().left + 'px'});
   });
 
   window.playMusic = function(href, title, singer, c) {
