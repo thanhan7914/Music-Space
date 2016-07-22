@@ -149,26 +149,30 @@ io.on('connection', function(socket) {
   });
 
   socket.on('lyrics', function(datas) {
-    if(isLimit(id) || typeof datas !== 'object' || !datas.hasOwnProperty('href') || !datas.hasOwnProperty('title') || !datas.hasOwnProperty('singer') || datas.href.length < 10)
+    if(typeof datas !== 'object' || !datas.hasOwnProperty('href') || !datas.hasOwnProperty('title') || !datas.hasOwnProperty('singer') || datas.href.length < 10)
     {
       socket.emit('tomanyrequest');
       return;
     }
 
     let target = datas.href;
-    let name = path.basename(target, '.html') + '.mp3';
+    let name = path.basename(target, '.html');
+    if(!name.endsWith('.mp3')) name += '.mp3';
     let localFiles = util.findInLocal(lyrics, name, true);
     if(localFiles.length !== 0)
     {
-      socket.emit('lyrics', localFiles[0].lyrics);
-      return;
+        socket.emit('lyrics', util.readFileSync(`/public_html/lyrics/${localFiles[0].lyrics}`));
+        return;
     }
+
+    console.log(target);
 
     return util.queryApi(target)
     .then(function(obj) {
       if(typeof obj === 'object' && obj.hasOwnProperty('lyrics_file'))
       {
         name = path.basename(obj.lyrics_file);
+        if(name === '') throw 'no lyrics';
 
         return util.download(obj.lyrics_file, __dirname + '/public_html/lyrics', name)
         .then(function() {
@@ -178,14 +182,13 @@ io.on('connection', function(socket) {
             lyrics.push(datas);
           });
 
-          socket.emit('lyrics', obj.lyrics_file);
-        })
-        .catch(function(err) {
-          console.log(err);
+           socket.emit('lyrics', util.readFileSync(`/public_html/lyrics/${name}`));
         });
       }
-
-      socket.emit('lyrics', 'no lyrics');
+    })
+    .catch(function(err) {
+        socket.emit('lyrics', 'no lyrics');
+        console.log(err);
     });
   });
 });

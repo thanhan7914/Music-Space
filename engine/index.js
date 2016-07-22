@@ -12,7 +12,7 @@ let readFile = function(fileName, options)
   let str = fs.readFileSync(fileName, 'utf8');
   //edit
   let templ = exports.compile(str, options);
-  exports.cache[fileName] = str; //cover to design ui
+//  exports.cache[fileName] = str; //cover to design ui
   return templ;
 }
 

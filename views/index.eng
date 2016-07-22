@@ -79,6 +79,6 @@
     </ul>
   </div>
 </body>
-<script src="assets/js/app.js">
-</script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/lyrics.js"></script>
 </html>

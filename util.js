@@ -75,8 +75,9 @@ let findSong = function(query, t, offset = 0) {
 }
 
 let queryApi = function(target) {
-  let id = path.basename(target, '.html');
+  let id = path.basename(path.basename(target, '.html'), '.mp3');
   let url = `${api}{"id":"${id}"}`;
+  console.log(url);
 
   return httpClient.get(url)
   .then(function(body) {
@@ -106,6 +107,10 @@ let readFile = function(filename, plaintext = false) {
       r(datas);
     });
   });
+}
+
+let readFileSync = function(filename) {
+  return fs.readFileSync(__dirname + filename, 'utf8');
 }
 
 let appendFile = function(filename, datas) {
@@ -166,3 +171,4 @@ exports.findInLocal = findInLocal;
 exports.appendFile = appendFile;
 exports.readFile = readFile;
 exports.queryApi = queryApi;
+exports.readFileSync = readFileSync;
