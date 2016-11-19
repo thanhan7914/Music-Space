@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Music Space - Copy file</title>
+  <link rel="shortcut icon" href="favicon.ico" />
+  <link href='https://fonts.googleapis.com/css?family=EB+Garamond&subset=latin,vietnamese' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css" />
+  <style>
+     body {
+       margin: 10px auto;
+       text-align: center;
+     }
+     ul {
+       list-style-type: none;
+       text-align: left;
+     }
+     li {
+       margin: 0;
+       padding: 8px 24px;
+       cursor: pointer;
+     }
+
+     li:hover {
+       background: #95a5a6;
+     }
+
+     input, button {
+       margin: 24px auto;
+       padding: 24px 28px;
+       font-size: 24px;
+       font-family: Arial;
+     }
+
+     input {
+       min-width: 30%;
+     }
+
+     #backdir {
+       position: fixed;
+       top: 0%;
+       right: 20px;
+       z-index: 2;
+       display: none;
+     }
+  </style>
+  <script src="assets/js/lib/jquery.min.js"></script>
+  <script src="assets/js/lib/socket.io-1.4.5.js"></script>
+</head>
+<body>
+  <button id="backdir" width="148px">Back</button>
+  <div class="container">
+    <h1>Input a folder</h1>
+    <input type="text" placeHolder="dest folder example D:/" id="dir">
+    <!--<button id="setdir">Set</button>-->
+    <ul id="list">
+    </ul>
+  </div>
+  <script type="text/javascript">
+    $(document).ready(function() {
+      let lstNotify;
+
+      function notifyMe(title, options) {
+        if(typeof lstNotify !== 'undefined') lstNotify.close();
+        options.icon = "http://127.0.0.1/assets/images/icon.png";
+        if (!("Notification" in window)) return console.log("This browser does not support desktop notification");
+        if (Notification.permission === "granted") return (lstNotify = new Notification(title, options));
+
+        Notification.requestPermission(function (permission) {
+          if (permission === "granted") {
+            lstNotify = new Notification(title, options);
+          }
+        });
+      }
+
+      if(typeof String.prototype.addslashes === 'undefined')
+        String.prototype.addslashes = function() {
+          return this.replace(/\'/g,'\\\'').replace(/\"/g,'\\\"');
+        }
+
+      if(typeof String.prototype.delslashes === 'undefined')
+        String.prototype.delslashes = function() {
+          return this.replace(/\\\'/g, '\'').replace(/\\\"/g, '\"');
+        }
+
+      let socket = io();
+      let dir;
+      socket.on('files', function(datas) {
+        dir = datas.dir;
+        $('h1').first().text('Copy files');
+        $('#list').html(datas.files);
+        $('input').hide();
+        $('button').hide(function() {
+          $('#backdir').show();
+        });
+
+        $('li').click(function() {
+          $(this).hide();
+          let json = $(this).attr('data').delslashes();
+          let obj = JSON.parse(`${json}`);
+          obj.dir = dir;
+          socket.emit('copy', obj);
+          notifyMe('Preparing, Copy file...', {body: `${$(this).text()}`});
+        });
+      });
+
+      socket.on('copy', function(title) {
+        if(title.endsWith('.mp3')) return notifyMe('Ok, copy success!', {body: title});
+        notifyMe('A error occus', {body: title});
+      });
+
+      $('#setdir').click(function() {
+        console.log('button click');
+        let ddir = $('#dir').val().trim();
+        if(ddir === '') return;
+        socket.emit('files', ddir);
+      });
+
+      $('#dir').keyup(function(e) {
+        if(e.keyCode === 13)
+        {
+          console.log('key enter');
+          let ddir = $('#dir').val().trim();
+          if(ddir === '') return;
+          socket.emit('files', ddir);
+        }
+      });
+
+      $('#backdir').click(function() {
+        $('h1').first().text('Input a folder');
+        $('#list').html('');
+        $('input').show();
+        $('button').show(function() {
+          $('#backdir').hide();
+        });
+      });
+    });
+  </script>
+</body>
+</html>

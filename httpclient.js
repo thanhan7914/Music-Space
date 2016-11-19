@@ -2,7 +2,7 @@ let request = require('request');
 let fs = require('fs');
 let path = require('path');
 
-let get = function(url) {
+let get = function(url, un = false) {
   url = String(url).trim().replace(/^\s*|\s*$/g, '');
 
   return new Promise(function(r, rj) {
@@ -12,15 +12,14 @@ let get = function(url) {
     }, function (error, response, body) {
       if (!error && response.statusCode == 200)
         r(body);
-      else if(error)
+      else if(error && un)
         rj(new Error(url + error.message));
+      else r('');
     });
   });
 }
 
-let proxyQuery = function(url) {
-  let host = '118.69.66.63';
-  let port = '8080';
+let proxyQuery = function(url, host = '123.30.238.16', port = '3128') {
   var proxyUrl = "http://" + host + ":" + port; //+ user + ":" + password + "@"
   var proxiedRequest = request.defaults({'proxy': proxyUrl});
 

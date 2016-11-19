@@ -12,6 +12,11 @@ if(typeof String.prototype.addslashes === 'undefined')
     return this.replace(/\'/g,'\\\'').replace(/\"/g,'\\\"');
   }
 
+if(typeof String.prototype.delslashes === 'undefined')
+  String.prototype.delslashes = function() {
+    return this.replace(/\\\'/g, '\'').replace(/\\\"/g, '\"');
+  }
+
 let getLink = function(target) {
   let id = path.basename(target, '.html');
   let url = `${zing}${target}`;
@@ -54,7 +59,11 @@ let findSong = function(query, t, offset = 0) {
 
   return httpClient.get(query)
   .then(function(body) {
-    let json = JSON.parse(body);
+    let json = {html: '', items: 0};
+    try {
+      json = JSON.parse(body);
+    }catch(e){}
+
     let html = json.html.replace(/\r\n\t|\r|\t|\n/g, '');
     let $ = cheerio.load(html);
     let url = $('a');
@@ -75,7 +84,7 @@ let findSong = function(query, t, offset = 0) {
 }
 
 let queryApi = function(target) {
-  let id = path.basename(target, '.html');
+  let id = path.basename(path.basename(target, '.html'), '.mp3');
   let url = `${api}{"id":"${id}"}`;
 
   return httpClient.get(url)
@@ -108,6 +117,10 @@ let readFile = function(filename, plaintext = false) {
   });
 }
 
+let readFileSync = function(filename) {
+  return fs.readFileSync(__dirname + filename, 'utf8');
+}
+
 let appendFile = function(filename, datas) {
   return new Promise(function(r, rj) {
     let content = `,\r\n${JSON.stringify(datas)}`;
@@ -121,8 +134,8 @@ let appendFile = function(filename, datas) {
 
 let findInLocal = (datas, filter, un = false) => {
   return datas.filter(function(obj, id) {
-    if(un && obj.href === filter) return true;
-    if(!un && obj.title.match(filter)) return true;
+    if(un && String(obj.href).trim() === filter.trim()) return true;
+    if(!un && String(obj.title).match(filter)) return true;
     return false;
   });
 }
@@ -156,7 +169,7 @@ let convert = function(alias) {
   return str;
 }
 
-
+exports.vi2en = changeAlias;
 exports.find = find;
 exports.getLink = getLink;
 exports.get = httpClient.get;
@@ -166,3 +179,47 @@ exports.findInLocal = findInLocal;
 exports.appendFile = appendFile;
 exports.readFile = readFile;
 exports.queryApi = queryApi;
+exports.readFileSync = readFileSync;
+exports.copyFile = function(sourcefile, destfile) {
+  fs.createReadStream(sourcefile).pipe(fs.createWriteStream(destfile));
+};
+exports.copyFilePromise = function(sourcefile, destfile) {
+  return new Promise(function(r, rj) {
+    let istream = fs.createReadStream(sourcefile);
+    istream.pipe(fs.createWriteStream(destfile));
+    istream.on('end', function() {
+      r();
+    });
+
+    istream.on('error', function(err) {
+      rj(err);
+    });
+  });
+};
+exports.fileExists = function(filename) {
+  fs.access(filename, fs.F_OK, function(err) {
+    if (!err) return true;
+    return false;
+  });
+};
+exports.fileExistsSync = function(filename) {
+  try {
+    fs.accessSync(filename, fs.F_OK);
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
+exports.scanDir = function(dirname, un = false) {
+  return new Promise(function(r, rj) {
+    fs.readdir(dirname, function(err, files) {
+      if(err) rj(err);
+      if(un) r(files.filter(function(file, idx){
+        if(file === '.' && file === '..') return false;
+        return true;
+      }));
+
+      r(files);
+    });
+  });
+};

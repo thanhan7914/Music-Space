@@ -39,6 +39,7 @@ function load(datas) {
   }
 
   app = createAudioApplication(`${folder}/${datas.href}`);
+  app.setVol(id.vol);
   analyser = app.getAnalyzer();
   visualize(typeof id.typeVisualizer !== 'undefined' ? id.typeVisualizer : 4);
   let update = function() {
@@ -92,8 +93,19 @@ if(typeof String.prototype.addslashes === 'undefined')
     return this.replace(/\'/g,'\\\'').replace(/\"/g,'\\\"');
   }
 
-load(list[id.pos]);
-app.setVol(0.5);
+let listen_element = document.getElementsByTagName('listen');
+if(listen_element.length > 0)
+{
+  list = [];
+  list.push(JSON.parse(`${listen_element[0].textContent}`));
+  id.pos = 0;
+  load(list[id.pos]);
+  app.setVol(0.5);
+}
+
+//load(list[id.pos]);
+//app.setVol(0.5);
+list = [];
 
 audioEnded = function() {
   id.pos++;
@@ -136,6 +148,8 @@ $(document).ready(function() {
     else id.soundClass = 'fa fa-2x fa-volume-down';
     if(!app.muted())
       document.querySelector('#sound>i').className = id.soundClass;
+    id.attach('vol');
+    id.vol = vol;
     app.setVol(vol);
   });
 
@@ -253,6 +267,7 @@ $(document).ready(function() {
   socket.on('play', function(datas) {
     $('.dim').fadeOut('slow');
     $('.warning').fadeOut('slow');
+    if(datas.hasOwnProperty('type') && !datas.type) list.push(datas);
     load(datas);
   });
 
@@ -266,6 +281,15 @@ $(document).ready(function() {
     console.log(msg);
     $('.dim').fadeOut('slow');
     $('.warning').fadeOut('slow');
+  });
+
+  socket.on('fileExists', function(un) {
+    un = Boolean(un);
+    console.log(un);
+  });
+
+  socket.on('lyrics', function(context) {
+    console.log(context);
   });
 
   $('#search').keyup(function(e) {
