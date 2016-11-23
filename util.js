@@ -86,6 +86,7 @@ let findSong = function(query, t, offset = 0) {
 let queryApi = function(target) {
   let id = path.basename(path.basename(target, '.html'), '.mp3');
   let url = `${api}{"id":"${id}"}`;
+  console.log(url);
 
   return httpClient.get(url)
   .then(function(body) {
@@ -223,3 +224,5 @@ exports.scanDir = function(dirname, un = false) {
     });
   });
 };
+
+exports.readFileSync = readFileSync;

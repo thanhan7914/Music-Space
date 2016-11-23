@@ -55,7 +55,12 @@ let lyrics = [];
 Promise.all([
   util.readFile('/audios.ms')
   .then(function(datas) {
-    audios = datas;
+    datas.forEach((doc, idx) => {
+      doc.title = doc.title.replace(/\/n|\/r/g, '').trim();
+      doc.singer = doc.singer.replace(/\/n|\/r/g, '').trim();
+      audios.push(doc);
+    });
+//    audios = datas;
   }),
   util.readFile('/lyrics.ms')
   .then(function(datas) {
@@ -244,7 +249,7 @@ io.on('connection',function(socket) {
     })
     .catch(function(err) {
         socket.emit('lyrics', 'no lyrics');
-        console.log(err);
+      //  console.log(err);
     });
   });
 

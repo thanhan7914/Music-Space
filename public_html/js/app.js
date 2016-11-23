@@ -6,12 +6,22 @@ audio.init(canvas);
 let canvasCtx = canvas.getContext("2d");
 let folder = 'assets/audios';
 let ext = 'mp3';
-let list = [{href : 'Mylove.mp3', title : 'My love', singer: 'Westlife'}, {href : 'NothingGonnaChangeMyLoveForYou.mp3', title : 'Nothing Gonna Change My Love For You', singer : 'Westlife'}, {href : 'CarelessWhisper.mp3', title : 'Careless Whisper', singer :'Wham HQ'}];
+let list = [{href : 'ZWZFO8DU.mp3', title : 'My love', singer: 'Westlife'}, {href : 'NothingGonnaChangeMyLoveForYou.mp3', title : 'Nothing Gonna Change My Love For You', singer : 'Westlife'}, {href : 'CarelessWhisper.mp3', title : 'Careless Whisper', singer :'Wham HQ'}];
 let history = [];
 id.attach('pos', 0);
+id.attach('current');
 
 function load(datas) {
   if(typeof datas === 'undefined' || !datas) return;
+  let f = function() {
+    if(typeof id.lyrics === 'undefined')
+    {
+      setTimeout(f, 100)
+      return;
+    }
+    id.lyrics(datas);
+  }
+  f();
 
   if(history.filter(function(obj) {
     let ohref = obj.href;
@@ -211,6 +221,7 @@ $(document).ready(function() {
   let fnio = io.bind(null);
   io = function() {};
   let socket = fnio();
+  id.attach('socket', socket);
   id.attach('sdelay', 400);
   id.attach('smark');
   id.attach('ssto');
